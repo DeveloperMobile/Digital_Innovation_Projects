@@ -7,7 +7,9 @@ import lombok.Setter;
 @Setter
 public class EditSoldierRequest {
 
+    private String cpf;
     private String name;
     private String gender;
     private String gunType;
+    private String status;
 }

@@ -1,47 +1,56 @@
 package com.example.restapi.RestfullApplication.service;
 
 import com.example.restapi.RestfullApplication.controller.request.EditSoldierRequest;
+import com.example.restapi.RestfullApplication.controller.response.SoldierResponse;
 import com.example.restapi.RestfullApplication.dto.Soldier;
+import com.example.restapi.RestfullApplication.entities.SoldierEntity;
+import com.example.restapi.RestfullApplication.repository.SoldierRepository;
+import com.example.restapi.RestfullApplication.resource.SoldierResource;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class SoldierService {
 
-    public Soldier searchSoldier(String cpf) {
-        Soldier soldier = new Soldier();
-        soldier.setCpf(cpf);
-        soldier.setName("Lauren");
-        soldier.setGender("female");
-        soldier.setGunType("M4-A4");
-        return soldier;
+    @Autowired
+    private SoldierRepository soldierRepository;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @Autowired
+    private SoldierResource soldierResource;
+
+
+    public SoldierResponse searchSoldier(Long id) {
+        SoldierEntity soldierEntity = soldierRepository.findById(id).orElseThrow();
+        SoldierResponse soldierResponse = objectMapper.convertValue(soldierEntity, SoldierResponse.class);
+        return soldierResponse;
     }
 
-    public void createSoldier(Soldier soldier) {
-
+    public void createSoldier(Soldier soldier){
+        SoldierEntity soldierEntity = objectMapper.convertValue(soldier, SoldierEntity.class);
+        soldierRepository.save(soldierEntity);
     }
 
-    public void alterSoldier(String cpf, EditSoldierRequest editSoldierRequest) {
+    public void editSoldier(Long id, EditSoldierRequest editSoldierRequest) {
+        SoldierEntity soldierEntity = objectMapper.convertValue(editSoldierRequest, SoldierEntity.class);
+        soldierEntity.setId(id);
+        soldierRepository.save(soldierEntity);
     }
 
-    public void deleteSoldier(String cpf) {
+    public void deleteSoldier(Long id) {
+        SoldierEntity soldier = soldierRepository.findById(id).orElseThrow();
+        soldierRepository.delete(soldier);
     }
 
-    public List<Soldier> findAllSoldiers() {
-        Soldier soldier1 = new Soldier();
-        soldier1.setCpf("123456789");
-        soldier1.setName("Lauren");
-        soldier1.setGender("female");
-        soldier1.setGunType("M4-A4");
-
-        Soldier soldier2 = new Soldier();
-        soldier2.setCpf("987654321");
-        soldier2.setName("Lance");
-        soldier2.setGender("male");
-        soldier2.setGunType("AK-47");
-
-        return Arrays.asList(soldier1, soldier2);
+    public List<Soldier> getAllSoldiers(){
+        List<SoldierEntity> all = soldierRepository.findAll();
+        List<Soldier> soldierStream = all.stream()
+                .map(it -> objectMapper.convertValue(it, Soldier.class))
+                .collect(Collectors.toList());
+        return soldierStream;
     }
 }

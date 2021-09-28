@@ -1,6 +1,8 @@
 package com.example.restapi.RestfullApplication.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.restapi.RestfullApplication.controller.request.EditSoldierRequest;
+import com.example.restapi.RestfullApplication.controller.response.SoldierResponse;
 import com.example.restapi.RestfullApplication.dto.Soldier;
 import com.example.restapi.RestfullApplication.service.SoldierService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/v1/soldier")
@@ -16,6 +19,9 @@ public class SoldierController {
 
     @Autowired
     private SoldierService soldierService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
 
     @GetMapping("/{cpf}")
@@ -35,7 +41,7 @@ public class SoldierController {
     @PutMapping("/{cpf}")
     public ResponseEntity editSoldier(@PathVariable String cpf,
                                       @RequestBody EditSoldierRequest editSoldierRequest) {
-        soldierService.alterSoldier(cpf, editSoldierRequest);
+        soldierService.editSoldier(cpf, editSoldierRequest);
         return ResponseEntity.ok().build();
     }
 
@@ -46,8 +52,10 @@ public class SoldierController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Soldier>> getAllSoldiers() {
-        List<Soldier> soldiers = soldierService.findAllSoldiers();
+    public ResponseEntity<List<SoldierResponse>> getAllSoldiers() {
+        List<SoldierResponse> soldiers = soldierService.getAllSoldiers().stream()
+                .map(it -> objectMapper.convertValue(it,SoldierResponse.class))
+                .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(soldiers);
     }
 }
